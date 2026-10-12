@@ -16,11 +16,11 @@
 En una pyme, cada gasto que paga un empleado (combustible, almuerzo con un cliente, insumos, un taxi) termina como un recibo en papel o una foto en el celular. Para que ese gasto exista en la contabilidad alguien tiene que:
 
 1. Juntar los recibos (por mail, WhatsApp o en mano).
-2. Leer cada uno y transcribir proveedor, fecha, monto, impuestos y moneda.
+2. Leer cada uno y transcribir proveedor, fecha, monto e impuestos.
 3. Buscar si el proveedor ya existe en el sistema contable o darlo de alta.
 4. Elegir la cuenta contable correcta del plan de cuentas.
 5. Verificar que el gasto no se haya cargado antes.
-6. Registrarlo en el sistema contable (QuickBooks, Xero, etc.).
+6. Registrarlo en el sistema contable (en este caso, QuickBooks Online).
 
 Es trabajo manual, repetitivo y propenso a errores: tipeo de montos, cuentas mal elegidas, duplicados, proveedores repetidos con nombres distintos ("YPF Río IV" / "YPF S.A."). Al mismo tiempo **no se puede automatizar a ciegas**: un asiento mal registrado tiene consecuencias contables e impositivas, así que el contador necesita tener la última palabra.
 
@@ -36,7 +36,7 @@ Es trabajo manual, repetitivo y propenso a errores: tipeo de montos, cuentas mal
 **Recorrido principal (happy path):**
 
 1. El empleado sube la foto de un ticket de combustible de YPF.
-2. El agente extrae los datos del recibo (proveedor, CUIT, fecha, total, IVA, moneda) en un esquema validado.
+2. El agente extrae los datos del recibo (proveedor, CUIT, fecha, total, IVA) en un esquema validado.
 3. El agente busca el proveedor en QuickBooks y encuentra una coincidencia por CUIT.
 4. Consulta la memoria: este proveedor ya fue imputado antes a *"Combustibles y movilidad"*.
 5. Verifica que no exista un gasto con el mismo proveedor, fecha y monto.
@@ -54,7 +54,6 @@ Es trabajo manual, repetitivo y propenso a errores: tipeo de montos, cuentas mal
 | Hay varios proveedores parecidos | Elige el más probable y deja el match marcado como **ambiguo** para el contador, o pide el CUIT al empleado. |
 | Existe un gasto muy similar ya registrado | Marca el borrador como **posible duplicado** con un link al gasto existente. |
 | La imagen es ilegible o falta el total | **No inventa datos**: devuelve el recibo al empleado con una pregunta concreta (estado *necesita información*). |
-| El recibo está en otra moneda | Registra moneda original y lo señala en el borrador. |
 | No hay historial para el proveedor | Usa las reglas de la skill para sugerir cuenta y baja el nivel de confianza. |
 
 ## 4. Alcance
@@ -70,7 +69,7 @@ Es trabajo manual, repetitivo y propenso a errores: tipeo de montos, cuentas mal
 
 **Fuera del alcance:**
 
-- Xero (la integración queda detrás de un adapter; se menciona como trabajo futuro).
+- Recibos en moneda extranjera y manejo multi-moneda: todos los gastos se registran en pesos argentinos (ARS).
 - Facturas de proveedores a pagar (*bills*), pagos, conciliación bancaria.
 - Recibos manuscritos o PDFs de varias páginas.
 - Multi-empresa, autenticación real de usuarios y permisos por rol productivos.
@@ -166,7 +165,7 @@ stateDiagram-v2
 
 | Tool | Kind | Qué hace | Decisión que habilita |
 |---|---|---|---|
-| `extract_receipt_data` | `compute` | Gemini visión → `ReceiptData` validado (proveedor, CUIT, fecha, moneda, total, IVA, ítems, confianza por campo). | ¿Los datos alcanzan o hay que pedir aclaración? |
+| `extract_receipt_data` | `compute` | Gemini visión → `ReceiptData` validado (proveedor, CUIT, fecha, total, IVA, ítems, confianza por campo). | ¿Los datos alcanzan o hay que pedir aclaración? |
 | `search_vendors` | `read` | Busca proveedores en QuickBooks por CUIT o nombre aproximado. | Match exacto, ambiguo o proveedor nuevo. |
 | `list_expense_accounts` | `read` | Devuelve el plan de cuentas de gastos (con caché). | Qué cuenta corresponde. |
 | `find_duplicate_expenses` | `read` | Busca gastos con mismo proveedor, monto y fecha cercana (QuickBooks + base local). | Marcar o no como posible duplicado. |

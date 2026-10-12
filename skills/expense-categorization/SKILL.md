@@ -27,7 +27,7 @@ metadata:
 - Un borrador es una propuesta: nunca equivale a registrar el gasto.
 - No inventes montos, fechas, CUIT ni proveedores.
 - Si el comprobante es Factura A, registrá el IVA discriminado por separado.
-- Registrá siempre la moneda original del comprobante.
+- Solo se procesan comprobantes en pesos (ARS). Si el recibo está en otra moneda, pedí aclaración en lugar de convertir.
 - Si el proveedor no existe, proponé su alta dentro del borrador; no lo crees vos.
 
 ## Ejemplo
